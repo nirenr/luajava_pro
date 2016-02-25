@@ -201,7 +201,8 @@ void checkError(JNIEnv *javaEnv, lua_State *L) {
     }
 
     cStr = (*javaEnv)->GetStringUTFChars(javaEnv, jstr, NULL);
-    lua_pushstring(L, cStr);
+    //lua_settop(L, 0);
+	lua_pushstring(L, cStr);
 
     (*javaEnv)->ReleaseStringUTFChars(javaEnv, jstr, cStr);
     (*javaEnv)->DeleteLocalRef(javaEnv, exp);
@@ -1227,49 +1228,7 @@ Java_com_luajava_LuaState__1openLuajava(JNIEnv *env, jobject jobj, jobject cptr,
 
   // luaopen_luajava( L );
   luaL_requiref(L, "luajava", luaopen_luajava, 1);
-  /*
-          lua_newtable(L);
 
-          lua_setglobal(L, "luajava");
-
-          lua_getglobal(L, "luajava");
-
-          set_info(L);
-
-          lua_pushstring(L, "bindClass");
-          lua_pushcfunction(L, &javaBindClass);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "new");
-          lua_pushcfunction(L, &javaNew);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "newInstance");
-          lua_pushcfunction(L, &javaNewInstance);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "loadLib");
-          lua_pushcfunction(L, &javaLoadLib);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "createProxy");
-          lua_pushcfunction(L, &createProxy);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "createArray");
-          lua_pushcfunction(L, &createArray);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "coding");
-          lua_pushcfunction(L, &coding);
-          lua_settable(L, -3);
-
-          lua_pushstring(L, "clear");
-          lua_pushcfunction(L, &gc);
-          lua_settable(L, -3);
-
-          lua_pop(L, 1);
-  */
   if (luajava_api_class == NULL) {
     tempClass = (*env)->FindClass(env, "com/luajava/LuaJavaAPI");
 

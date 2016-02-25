@@ -220,12 +220,12 @@ public final class LuaJavaAPI
 			}
 			catch (NoSuchFieldException e)
 			{
-				try
+				/*try
 				{
 					field = objClass.getDeclaredField(fieldName);
 				}
 				catch (Exception e2)
-				{
+				*/{
 					return 0;
 				}
 			}
@@ -234,13 +234,17 @@ public final class LuaJavaAPI
 				return 0;
 			if (isClass && !Modifier.isStatic(field.getModifiers()))
 				return 0;
-
+			Class type = field.getType();
 			try
 			{
 				if (!Modifier.isPublic(field.getModifiers()))
 					field.setAccessible(true);
-				Class type = field.getType();
+				
 				field.set(obj, compareTypes(L, type, 3));
+			}
+			catch (LuaException e)
+			{
+				argError(L,fieldName,3,type);
 			}
 			catch (Exception e)
 			{
@@ -251,6 +255,40 @@ public final class LuaJavaAPI
 		}
 	}
 
+	private static String argError(LuaState L, String name, int idx, Class type) throws LuaException
+	{
+		
+		throw new LuaException("bad argument to '"+name+"' ("+type.getName()+" expected, got "+typeName(L,3)+" value)");
+		
+	}
+	
+	private static String typeName(LuaState L, int idx) throws LuaException
+	{
+		if(L.isObject(idx))
+		{
+			return L.getObjectFromUserdata(idx).getClass().getName();
+		}
+		switch(L.type(idx))
+		{
+			case LuaState.LUA_TSTRING:
+				return "string";
+			case LuaState.LUA_TNUMBER:
+				return "number";
+			case LuaState.LUA_TBOOLEAN:
+				return "boolean";
+			case LuaState.LUA_TFUNCTION:
+				return "function";
+			case LuaState.LUA_TTABLE:
+				return "table";
+			case LuaState.LUA_TTHREAD:
+				return "thread";
+			case LuaState.LUA_TLIGHTUSERDATA:
+			case LuaState.LUA_TUSERDATA:
+				return "userdata";
+		}
+		return "unkown";
+	}
+	
 	/**
 	 * Java implementation of the metamethod __index
 	 * 
@@ -272,6 +310,10 @@ public final class LuaJavaAPI
 			{
 				Object value = compareTypes(L, type, 3);
 				Array.set(obj, index, value);
+			}
+			catch (LuaException e)
+			{
+				argError(L,obj.getClass().getName()+" ["+index+"]",3,type);
 			}
 			catch (Exception e)
 			{
@@ -302,6 +344,7 @@ public final class LuaJavaAPI
 
 		}
 	}
+	
 	public static int asTable(int luaState, Object obj) throws LuaException
 	{
 		LuaState L = LuaStateFactory.getExistingState(luaState);
@@ -1338,7 +1381,11 @@ public final class LuaJavaAPI
 					if (L.isObject(idx))
 					{
 						Object userObj = L.getObjectFromUserdata(idx);
-						if (!parameter.isAssignableFrom(userObj.getClass()))
+						if(parameter.isPrimitive() && Number.class.isAssignableFrom(userObj.getClass()))
+						{
+							obj = userObj;
+						}
+						else if (!parameter.isAssignableFrom(userObj.getClass()))
 						{
 							okType = false;
 						}

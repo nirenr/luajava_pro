@@ -507,8 +507,8 @@ static int findtable (lua_State *L) {
   }
   luaL_checktype(L, 1, LUA_TTABLE);
   const char *name = luaL_checklstring(L, 2, 0);
-  luaL_findtable(L, 1, name, 0);
-  return 1;
+  lua_pushstring(L, luaL_findtable(L, 1, name, 0));
+  return 2;
 }
 #endif
 
